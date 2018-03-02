@@ -50,6 +50,7 @@ userSchema.methods.generateJwt = function() {
         _id: this._id,
         email: this.email,
         name: this.name,
+        room: this.room,
         userKind: this.userKind,
         exp: parseInt(expiry.getTime() / 1000),
     }, "MY_SECRET");
