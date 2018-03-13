@@ -1,39 +1,65 @@
 var express = require('express');
 var router = express.Router();
-
 var csv = require('fast-csv');
 var archiver = require('archiver')
 var Thing = require("../models/thing");
 var fs = require('fs');
 var path = require('path');
-
 var auth = require('./auth');
 
-router.post('/thing', auth.getAuth(), auth.checkRole, function (req, res) {
+//parte da foto
+var multer  = require('multer')
+var upload = multer({dest: './public/uploads/thingsImages/'})
 
-    var thing = new Thing(req.body);
-        thing.save(function (err, next) {
+// var upload = multer({ storage: storage })
+///////////////////////////////////////////
+
+// var storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, 'public/uploads')
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.fieldname + '-' + Date.now())
+//   }
+// });
+
+
+router.post('/thing', upload.any(), auth.getAuth(), auth.checkRole, function (req, res, next) {
+
+  var filename = '';
+  var thing = new Thing(req.body);
+
+  if (req.files) {
+      req.files.forEach(function (file) {
+      filename = (new Date).valueOf() + "-" + file.originalname
+      fs.rename(file.path, 'public/uploads/thingsImages/' + filename, function (err) {
+        if (err) console.log(err);
+        console.log("file update...");
+      })
+    })
+  }
+
+    thing.image = filename;
+    thing.save(function (err, next) {
           	if (err) {
             	return next(err);
            	}
-          res.end()
+            res.end();
      	});
-
 });
+
 
 router.get('/things/attachments', function (req, res) {
 
     Thing.find({}, function (err, things) {
         if (err) return console.error(err);
 
-        console.log(things);
-
-        var list = [['Sala','Patrimônio', 'Série', 'Origem', 'Descrição', 'Marca/Modelo', 'Data de aquisição', 
+        var list = [['Sala','Patrimônio', 'Série', 'Origem', 'Descrição', 'Marca/Modelo', 'Data de aquisição',
                     'Situação', 'Destinatário', 'Observações']];
 
         for (var i = 0; i < things.length; i++) {
-            thing = [things[i].room, things[i].number_Patrimony, things[i].serie, things[i].origem, 
-                       things[i].description,  things[i].brand_model, things[i].acquisition_date, things[i].situation, 
+            thing = [things[i].room, things[i].number_Patrimony, things[i].serie, things[i].origem,
+                       things[i].description,  things[i].brand_model, things[i].acquisition_date, things[i].situation,
                        things[i].destination, things[i].comments];
             list.push(thing);
         }
@@ -46,8 +72,8 @@ router.get('/things/attachments', function (req, res) {
 
     });
 
-    res.send('Sucesso');        
-    
+    res.send('Sucesso');
+
 });
 
 router.get('/things', auth.getAuth(), function (req, res) {
@@ -87,9 +113,27 @@ router.get('/thing/:thing', auth.getAuth(), function(req, res, next) {
  * Edit Thing
  */
 
-router.put('/thing/:id', auth.getAuth(), auth.checkRole, function (req, res) {
-  Thing.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, function (err, doc) {
-      if (err) console.log(err);
+router.put('/thing/:id', upload.any(), auth.getAuth(), auth.checkRole, function (req, res) {
+
+  var filename = '';
+  var thing = new Thing(req.body);
+
+  if (req.files) {
+      req.files.forEach(function (file) {
+        filename = (new Date).valueOf() + "-" + file.originalname
+        fs.rename(file.path, 'public/uploads/thingsImages/' + filename, function (err) {
+          if (err) console.log(err);
+          console.log("file update...");
+        })
+      })
+    }
+
+  if (filename != '') {
+    thing.image = filename;
+  }
+
+  Thing.findOneAndUpdate({_id: req.params.id}, thing, {new: true}, function (err, doc) {
+      if (err) res.sendStatus(404);
       console.log("Objeto atualizado!");
       res.send(doc);
     });
@@ -128,7 +172,5 @@ router.param('thing', auth.getAuth(), function (req, res, next, _id) {
     return next();
   });
 });
-
-
 
 module.exports = router;
