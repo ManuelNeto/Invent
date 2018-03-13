@@ -8,9 +8,40 @@ var path = require('path');
 var User = require("../models/user");
 var auth = require('./auth');
 
-router.post('/machine', auth.getAuth(), auth.checkRole, function (req, res) {
+//parte da foto
+var multer  = require('multer')
+var upload = multer({dest: './public/uploads/machinesImages/'})
+
+// var upload = multer({ storage: storage })
+///////////////////////////////////////////
+
+// var storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, 'public/uploads')
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.fieldname + '-' + Date.now())
+//   }
+// });
+
+router.post('/machine', upload.any(), auth.getAuth(), auth.checkRole, function (req, res) {
+
+  var filename = '';
+
+  if (req.files) {
+      req.files.forEach(function (file) {
+        console.log(file);
+      filename = (new Date).valueOf() + "-" + file.originalname
+      fs.rename(file.path, 'public/uploads/machinesImages/' + filename, function (err) {
+        if (err) console.log(err);
+        console.log("file update...");
+      })
+    })
+  }
+
 
     var machine = new Machine(req.body);
+    machine.image = filename;
         machine.save(function (err, next) {
           	if (err) {
             	return next(err);
@@ -59,8 +90,24 @@ router.get('/machine/:machine', auth.getAuth(), function(req, res, next) {
  * Edit Machine
  */
 
-router.put('/machine/:id', auth.getAuth(), auth.checkRole, function (req, res) {
-    Machine.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, function (err, doc) {
+router.put('/machine/:id', upload.any(), auth.getAuth(), auth.checkRole, function (req, res) {
+
+  var filename = '';
+
+  if (req.files) {
+      req.files.forEach(function (file) {
+        filename = (new Date).valueOf() + "-" + file.originalname
+        fs.rename(file.path, 'public/uploads/machinesImages/' + filename, function (err) {
+          if (err) console.log(err);
+          console.log("file update...");
+        })
+      })
+    }
+
+    var machine = new Machine(req.body);
+    machine.image = filename;
+
+    Machine.findOneAndUpdate({_id: req.params.id}, machine, {new: true}, function (err, doc) {
         if (err) console.log(err);
         console.log("Objeto atualizado!");
         res.send(doc);
@@ -87,14 +134,14 @@ router.get('/machines/attachments', function (req, res) {
     Machine.find({}, function (err, machines) {
         if (err) return console.log(err);
 
-        var things = [['Sala','Descrição', 'IP público', 'Usuário', 'Processador', 'HD', 'Memória RAM', 
-                    'Patrimônio', 'Patrimônio inst', 'Monitor', 'Patrimonio (Monitor)', 'Patrimonio inst(Monitor)', 
+        var things = [['Sala','Descrição', 'IP público', 'Usuário', 'Processador', 'HD', 'Memória RAM',
+                    'Patrimônio', 'Patrimônio inst', 'Monitor', 'Patrimonio (Monitor)', 'Patrimonio inst(Monitor)',
                     'Data de Aquisição','Situação','Destinatário']];
 
         for (var i = 0; i < machines.length; i++) {
-            machine = [machines[i].room, machines[i].description, machines[i].public_ip, machines[i].machine_user, 
-                       machines[i].processor,  machines[i].hd, machines[i].ram_memory, machines[i].number_Patrimony, 
-                       machines[i].inst_Patrimony, machines[i].monitor, machines[i].inst_monitor_Patrimony, 
+            machine = [machines[i].room, machines[i].description, machines[i].public_ip, machines[i].machine_user,
+                       machines[i].processor,  machines[i].hd, machines[i].ram_memory, machines[i].number_Patrimony,
+                       machines[i].inst_Patrimony, machines[i].monitor, machines[i].inst_monitor_Patrimony,
                        machines[i].monitor_number_Patrimony, machines[i].acquisition_date, machines[i].situation, machines[i].destination];
             things.push(machine);
         }
@@ -107,8 +154,8 @@ router.get('/machines/attachments', function (req, res) {
 
     });
 
-    res.send('Sucesso');         
-    
+    res.send('Sucesso');
+
 });
 
 
