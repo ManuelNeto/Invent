@@ -27,10 +27,10 @@ var upload = multer({dest: './public/uploads/thingsImages/'})
 router.post('/thing', upload.any(), auth.getAuth(), auth.checkRole, function (req, res, next) {
 
   var filename = '';
+  var thing = new Thing(req.body);
 
   if (req.files) {
       req.files.forEach(function (file) {
-        console.log(file);
       filename = (new Date).valueOf() + "-" + file.originalname
       fs.rename(file.path, 'public/uploads/thingsImages/' + filename, function (err) {
         if (err) console.log(err);
@@ -39,9 +39,7 @@ router.post('/thing', upload.any(), auth.getAuth(), auth.checkRole, function (re
     })
   }
 
-    var thing = new Thing(req.body);
     thing.image = filename;
-
     thing.save(function (err, next) {
           	if (err) {
             	return next(err);
@@ -118,6 +116,7 @@ router.get('/thing/:thing', auth.getAuth(), function(req, res, next) {
 router.put('/thing/:id', upload.any(), auth.getAuth(), auth.checkRole, function (req, res) {
 
   var filename = '';
+  var thing = new Thing(req.body);
 
   if (req.files) {
       req.files.forEach(function (file) {
@@ -129,8 +128,9 @@ router.put('/thing/:id', upload.any(), auth.getAuth(), auth.checkRole, function 
       })
     }
 
-  var thing = new Thing(req.body);
-  thing.image = filename;
+  if (filename != '') {
+    thing.image = filename;
+  }
 
   Thing.findOneAndUpdate({_id: req.params.id}, thing, {new: true}, function (err, doc) {
       if (err) res.sendStatus(404);

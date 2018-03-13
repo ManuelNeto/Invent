@@ -27,10 +27,10 @@ var upload = multer({dest: './public/uploads/machinesImages/'})
 router.post('/machine', upload.any(), auth.getAuth(), auth.checkRole, function (req, res) {
 
   var filename = '';
+  var machine = new Machine(req.body);
 
   if (req.files) {
       req.files.forEach(function (file) {
-        console.log(file);
       filename = (new Date).valueOf() + "-" + file.originalname
       fs.rename(file.path, 'public/uploads/machinesImages/' + filename, function (err) {
         if (err) console.log(err);
@@ -40,7 +40,6 @@ router.post('/machine', upload.any(), auth.getAuth(), auth.checkRole, function (
   }
 
 
-    var machine = new Machine(req.body);
     machine.image = filename;
         machine.save(function (err, next) {
           	if (err) {
@@ -93,6 +92,7 @@ router.get('/machine/:machine', auth.getAuth(), function(req, res, next) {
 router.put('/machine/:id', upload.any(), auth.getAuth(), auth.checkRole, function (req, res) {
 
   var filename = '';
+  var machine = new Machine(req.body);
 
   if (req.files) {
       req.files.forEach(function (file) {
@@ -104,8 +104,9 @@ router.put('/machine/:id', upload.any(), auth.getAuth(), auth.checkRole, functio
       })
     }
 
-    var machine = new Machine(req.body);
-    machine.image = filename;
+    if (filename != '') {
+      machine.image = filename;
+    }
 
     Machine.findOneAndUpdate({_id: req.params.id}, machine, {new: true}, function (err, doc) {
         if (err) console.log(err);
