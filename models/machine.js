@@ -75,6 +75,11 @@ var machineSchema = mongoose.Schema({
     destination:{
         type: String,
         default: ''
+    },
+
+    image: {
+      type: String,
+      default: ''
     }
 });
 
