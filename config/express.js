@@ -4,6 +4,7 @@ var session = require('express-session');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 
+
 // Authentication
 var passport = require('passport');
 
@@ -36,6 +37,8 @@ module.exports = function () {
     // middleware
     app.use(express.static('./public'));
     app.use(express.static('./views'));
+    app.use(express.static('./uploads'));
+
 
     app.set('view engine', 'html');
     app.engine('html', require('ejs').renderFile);
