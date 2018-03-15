@@ -147,7 +147,7 @@ router.get('/machines/attachments', function (req, res) {
             things.push(machine);
         }
 
-        var ws = fs.createWriteStream('relatorioMaquinas.csv');
+        var ws = fs.createWriteStream(__dirname + '/relatorioMaquinas.csv');
 
         csv.
             write(things, {headers: true})
@@ -155,7 +155,10 @@ router.get('/machines/attachments', function (req, res) {
 
     });
 
-    res.send('Sucesso');
+    console.log(__dirname + "/relatorioMaquinas.csv");
+    res.download(__dirname + '/relatorioMaquinas.csv', 'relatorioMaquinas.csv');
+
+    //res.send('Sucesso');
 
 });
 
