@@ -155,10 +155,10 @@ router.get('/machines/attachments', function (req, res) {
 
     });
 
-    console.log(__dirname + "/relatorioMaquinas.csv");
+    
     res.download(__dirname + '/relatorioMaquinas.csv', 'relatorioMaquinas.csv');
 
-    //res.send('Sucesso');
+    
 
 });
 

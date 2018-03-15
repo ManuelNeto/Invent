@@ -64,7 +64,7 @@ router.get('/things/attachments', function (req, res) {
             list.push(thing);
         }
 
-        var ws = fs.createWriteStream('relatorioObjetos.csv');
+        var ws = fs.createWriteStream(__dirname + '/relatorioObjetos.csv');
 
         csv.
             write(list, {headers: true})
@@ -72,7 +72,7 @@ router.get('/things/attachments', function (req, res) {
 
     });
 
-    res.send('Sucesso');
+    res.download(__dirname + '/relatorioObjetos.csv', 'relatorioObjetos.csv');
 
 });
 
